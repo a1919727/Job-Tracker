@@ -7,5 +7,5 @@ const host = "127.0.0.1";
 connectToDB();
 
 app.listen(port, host, () => {
-  console.log(`Server is running on http://${host}:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
