@@ -19,14 +19,14 @@ export const requireAuth = (
 ) => {
   const header = req.headers.authorization;
   const token = String(header && header.split(" ")[1]);
-  const JWT_SECRET = process.env.jwtSercet as string;
+  const jwtSecret = (process.env.JWT_SECRET as string) || "secret";
 
   if (!token) {
     return res.status(401).json({ message: "Unauthorized. No token provided" });
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwt.verify(token, jwtSecret);
     req.user = decoded;
 
     next();

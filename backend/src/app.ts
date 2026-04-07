@@ -2,8 +2,8 @@ import express from "express";
 import { errorHandler } from "./middleware/errorHandler";
 import { setupSwagger } from "./config/swagger";
 import authRouter from "./routes/authRoute";
-// import userRouter from "./routes/userRoute";
-// import { requireAuth } from "./middleware/authMiddleware";
+import userRouter from "./routes/userRoute";
+import { requireAuth } from "./middleware/authMiddleware";
 
 const app = express();
 
@@ -20,5 +20,6 @@ setupSwagger(app);
 app.use(errorHandler);
 
 app.use("/api/auth", authRouter);
+app.use("/api/user", requireAuth, userRouter);
 
 export default app;
