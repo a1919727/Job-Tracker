@@ -1,3 +1,4 @@
+import "dotenv/config";
 import cors from "cors";
 import express from "express";
 import { errorHandler } from "./middleware/errorHandler";
@@ -8,10 +9,12 @@ import jobRouter from "./routes/jobRoute";
 import { requireAuth } from "./middleware/authMiddleware";
 
 const app = express();
+const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
 
 app.use(
   cors({
-    origin: process.env.clientUrl,
+    origin: clientUrl,
+    credentials: true,
   }),
 );
 
@@ -24,11 +27,11 @@ app.get("/", (_req, res) => {
 // Swagger
 setupSwagger(app);
 
-// Error handler
-app.use(errorHandler);
-
 app.use("/api/auth", authRouter);
 app.use("/api/user", requireAuth, userRouter);
 app.use("/api/job", requireAuth, jobRouter);
+
+// Error handler
+app.use(errorHandler);
 
 export default app;
