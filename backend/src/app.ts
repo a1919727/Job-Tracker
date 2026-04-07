@@ -1,3 +1,4 @@
+import cors from "cors";
 import express from "express";
 import { errorHandler } from "./middleware/errorHandler";
 import { setupSwagger } from "./config/swagger";
@@ -7,6 +8,12 @@ import jobRouter from "./routes/jobRoute";
 import { requireAuth } from "./middleware/authMiddleware";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: process.env.clientUrl,
+  }),
+);
 
 app.use(express.json());
 
