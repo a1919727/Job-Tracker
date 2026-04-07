@@ -42,7 +42,7 @@ export default function SignUpSide() {
     e.preventDefault();
 
     setError("");
-    setIsLoading(false);
+    setIsLoading(true);
 
     try {
       const response = await axios.post(
@@ -202,6 +202,7 @@ export default function SignUpSide() {
                 type="submit"
                 fullWidth
                 variant="contained"
+                disabled={isLoading}
                 sx={{
                   mt: 3,
                   mb: 2,
@@ -213,7 +214,7 @@ export default function SignUpSide() {
                   },
                 }}
               >
-                Sign up
+                {isLoading ? "Signing up..." : "Sign up"}
               </Button>
               <Grid container>
                 <Grid size={{ sm: 12 }}>
