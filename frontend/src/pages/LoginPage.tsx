@@ -58,6 +58,7 @@ export default function SignInSide() {
         },
       );
       console.log("Log in successfully", response.data);
+      localStorage.setItem("token", response.data.token);
       navigate("/Dashboard");
     } catch (error) {
       console.log("Failed to login", error);
