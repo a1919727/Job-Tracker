@@ -1,13 +1,19 @@
 import mongoose, { Document } from "mongoose";
 
 export const JOB_STATUSES = [
+  "Saved",
   "Applied",
   "Interview",
   "Rejected",
   "Offer",
 ] as const;
 
-type JobStatus = "Applied" | "Interview" | "Rejected" | "Offer";
+export type JobStatus =
+  | "Saved"
+  | "Applied"
+  | "Interview"
+  | "Rejected"
+  | "Offer";
 
 export interface Job extends Document {
   user: mongoose.Types.ObjectId;
