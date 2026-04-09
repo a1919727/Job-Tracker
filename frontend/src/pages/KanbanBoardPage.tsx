@@ -15,29 +15,13 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import AddJobDialog, {
+import AddJobDialog from "../components/AddJobDialog";
+import {
   type JobFormData,
   type JobStatus,
-} from "../components/AddJobDialog";
-
-type JobCard = {
-  id: string | number;
-  company: string;
-  role: string;
-  location: string;
-  status: JobStatus;
-};
-
-type ApiJob = {
-  _id: string;
-  companyName: string;
-  jobTitle: string;
-  location?: string;
-  status: JobStatus;
-  applicationDate?: string;
-  jobUrl?: string;
-  notes?: string;
-};
+  type JobCard,
+  type ApiJob,
+} from "../types/job.types";
 
 const columns: Array<{
   id: JobStatus;
