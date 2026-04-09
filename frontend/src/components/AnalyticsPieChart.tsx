@@ -1,10 +1,10 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { PieChart } from "@mui/x-charts/PieChart";
-import type { JobCard, JobStatus } from "../types/job.types";
+import type { ApiJob, JobStatus } from "../types/job.types";
 
 type AnalyticsPieChartProps = {
-  jobs: JobCard[];
+  jobs: ApiJob[];
 };
 
 const statusColors: Record<JobStatus, string> = {

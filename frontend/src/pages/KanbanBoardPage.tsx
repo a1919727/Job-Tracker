@@ -17,12 +17,7 @@ import {
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AddJobDialog from "../components/AddJobDialog";
-import type {
-  JobFormData,
-  JobStatus,
-  JobCard,
-  ApiJob,
-} from "../types/job.types";
+import type { JobFormData, JobStatus, ApiJob } from "../types/job.types";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import Draggable from "../components/Draggable";
 import Droppable from "../components/Droppable";
@@ -61,7 +56,7 @@ const columns: Array<{
 
 export default function KanbanBoardPage() {
   const navigate = useNavigate();
-  const [jobs, setJobs] = useState<JobCard[]>([]);
+  const [jobs, setJobs] = useState<ApiJob[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<JobStatus>("Saved");
   const [error, setError] = useState("");
@@ -90,19 +85,7 @@ export default function KanbanBoardPage() {
         });
 
         const jobsFromApi: ApiJob[] = response.data.jobs;
-
-        setJobs(
-          jobsFromApi.map((job) => ({
-            id: job._id,
-            company: job.companyName,
-            role: job.jobTitle,
-            location: job.location || "",
-            status: job.status,
-            applicationDate: job.applicationDate || new Date().toISOString(),
-            jobUrl: job.jobUrl || "",
-            notes: job.notes || "",
-          })),
-        );
+        setJobs(jobsFromApi);
       } catch (error) {
         console.log("Failed to fetch jobs", error);
         setError("Failed to fetch jobs");
@@ -132,20 +115,8 @@ export default function KanbanBoardPage() {
         },
       );
 
-      const newJob: ApiJob = response.data.job;
-      setJobs((prev) => [
-        {
-          id: newJob._id,
-          company: newJob.companyName,
-          role: newJob.jobTitle,
-          location: newJob.location || "",
-          status: newJob.status,
-          applicationDate: newJob.applicationDate || new Date().toISOString(),
-          jobUrl: newJob.jobUrl || "",
-          notes: newJob.notes || "",
-        },
-        ...prev,
-      ]);
+      const newJob = response.data.job;
+      setJobs((current) => [newJob, ...current]);
       setDialogOpen(false);
     } catch (error) {
       console.log("Failed to add card", error);
@@ -171,12 +142,12 @@ export default function KanbanBoardPage() {
 
     if (!jobId || !nextStatus) return;
 
-    const draggedJob = jobs.find((job) => job.id === jobId);
+    const draggedJob = jobs.find((job) => job._id === jobId);
     if (!draggedJob || draggedJob.status === nextStatus) return;
 
     setJobs((current) =>
       current.map((job) =>
-        job.id === jobId ? { ...job, status: nextStatus } : job,
+        job._id === jobId ? { ...job, status: nextStatus } : job,
       ),
     );
     try {
@@ -188,10 +159,10 @@ export default function KanbanBoardPage() {
       await axios.put(
         `http://localhost:5001/api/job/${jobId}`,
         {
-          companyName: draggedJob.company,
-          jobTitle: draggedJob.role,
+          companyName: draggedJob.companyName,
+          jobTitle: draggedJob.jobTitle,
           status: nextStatus,
-          applicationDate: draggedJob.applicationDate,
+          applicationDate: draggedJob.applicationDate || "",
           location: draggedJob.location,
           jobUrl: draggedJob.jobUrl,
           notes: draggedJob.notes,
@@ -216,7 +187,7 @@ export default function KanbanBoardPage() {
     navigate("/analytics");
   };
 
-  const activeJob = jobs.find((job) => job.id === activeJobId);
+  const activeJob = jobs.find((job) => job._id === activeJobId);
 
   return (
     <>
@@ -373,7 +344,7 @@ export default function KanbanBoardPage() {
                             )}
 
                             {cards.map((job) => (
-                              <Draggable key={job.id} job={job}>
+                              <Draggable key={job._id} job={job}>
                                 <Paper
                                   elevation={0}
                                   sx={{
@@ -405,7 +376,7 @@ export default function KanbanBoardPage() {
                                           fontWeight: 700,
                                         }}
                                       >
-                                        {job.company?.[0] || "J"}
+                                        {job.companyName?.[0] || ""}
                                       </Avatar>
 
                                       <Box>
@@ -416,7 +387,7 @@ export default function KanbanBoardPage() {
                                             fontWeight: 700,
                                           }}
                                         >
-                                          {job.role}
+                                          {job.jobTitle}
                                         </Typography>
                                         <Typography
                                           variant="body2"
@@ -424,7 +395,7 @@ export default function KanbanBoardPage() {
                                             color: "rgba(23, 50, 77, 0.68)",
                                           }}
                                         >
-                                          {job.company}
+                                          {job.companyName}
                                         </Typography>
                                       </Box>
                                     </Stack>
@@ -495,13 +466,13 @@ export default function KanbanBoardPage() {
                       variant="subtitle1"
                       sx={{ color: "#17324d", fontWeight: 700 }}
                     >
-                      {activeJob.role}
+                      {activeJob.jobTitle}
                     </Typography>
                     <Typography
                       variant="body2"
                       sx={{ color: "rgba(23, 50, 77, 0.68)" }}
                     >
-                      {activeJob.company}
+                      {activeJob.companyName}
                     </Typography>
                     <Typography
                       variant="body2"

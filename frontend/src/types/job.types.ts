@@ -1,14 +1,3 @@
-export type JobCard = {
-  id: string | number;
-  company: string;
-  role: string;
-  location: string;
-  status: JobStatus;
-  applicationDate: string;
-  jobUrl: string;
-  notes: string;
-};
-
 export type ApiJob = {
   _id: string;
   companyName: string;

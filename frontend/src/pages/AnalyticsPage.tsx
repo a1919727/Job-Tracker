@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   AlertTitle,
@@ -14,7 +14,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import type { ApiJob, JobCard, JobStatus } from "../types/job.types";
+import type { ApiJob, JobStatus } from "../types/job.types";
 import AnalyticsPieChart from "../components/AnalyticsPieChart";
 
 const statusAccent: Record<JobStatus, string> = {
@@ -27,7 +27,7 @@ const statusAccent: Record<JobStatus, string> = {
 
 export default function AnalyticsPage() {
   const navigate = useNavigate();
-  const [allJobs, setAllJobs] = useState<JobCard[]>([]);
+  const [allJobs, setAllJobs] = useState<ApiJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -48,19 +48,7 @@ export default function AnalyticsPage() {
         });
 
         const jobsFromApi: ApiJob[] = response.data.jobs;
-
-        setAllJobs(
-          jobsFromApi.map((job) => ({
-            id: job._id,
-            company: job.companyName,
-            role: job.jobTitle,
-            location: job.location || "",
-            status: job.status,
-            applicationDate: job.applicationDate || new Date().toISOString(),
-            jobUrl: job.jobUrl || "",
-            notes: job.notes || "",
-          })),
-        );
+        setAllJobs(jobsFromApi);
       } catch (error) {
         console.log("Failed to fetch jobs", error);
         setError("Failed to fetch jobs");
@@ -73,8 +61,8 @@ export default function AnalyticsPage() {
 
   const recentJobs = [...allJobs]
     .sort((a, b) => {
-      const dateA = new Date(a.applicationDate).getTime();
-      const dateB = new Date(b.applicationDate).getTime();
+      const dateA = new Date(a.applicationDate ?? 0).getTime();
+      const dateB = new Date(b.applicationDate ?? 0).getTime();
       return dateB - dateA;
     })
     .slice(0, 5);
@@ -199,7 +187,7 @@ export default function AnalyticsPage() {
 
                     {recentJobs.map((job) => (
                       <Paper
-                        key={job.id}
+                        key={job._id}
                         elevation={0}
                         sx={{
                           borderRadius: 3,
@@ -219,10 +207,10 @@ export default function AnalyticsPage() {
                               variant="subtitle2"
                               sx={{ color: "#16324a", fontWeight: 700 }}
                             >
-                              {job.role}
+                              {job.jobTitle}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
-                              {job.company}
+                              {job.companyName}
                             </Typography>
                           </Box>
                           <Chip
