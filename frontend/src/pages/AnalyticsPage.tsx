@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
                   display: "grid",
                   gridTemplateColumns: {
                     xs: "1fr",
-                    xl: "1.2fr 0.9fr",
+                    lg: "1.2fr 0.9fr",
                   },
                   gap: 2,
                 }}
