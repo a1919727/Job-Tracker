@@ -15,6 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import AddJobDialog from "../components/AddJobDialog";
 import type {
   JobFormData,
@@ -59,6 +60,7 @@ const columns: Array<{
 ];
 
 export default function KanbanBoardPage() {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<JobCard[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<JobStatus>("Saved");
@@ -210,6 +212,10 @@ export default function KanbanBoardPage() {
     setActiveJobId(null);
   };
 
+  const handleViewAnalytics = () => {
+    navigate("/analytics");
+  };
+
   const activeJob = jobs.find((job) => job.id === activeJobId);
 
   return (
@@ -261,6 +267,13 @@ export default function KanbanBoardPage() {
                   Organise your applications and track each stage.
                 </Typography>
               </Box>
+              <Button
+                variant="outlined"
+                sx={{ fontWeight: "bold" }}
+                onClick={handleViewAnalytics}
+              >
+                View analytics
+              </Button>
             </Stack>
           </Paper>
 
@@ -295,10 +308,13 @@ export default function KanbanBoardPage() {
                 <Box
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: "repeat(5, minmax(260px, 1fr))",
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      lg: "repeat(5, minmax(260px, 1fr))",
+                    },
                     gap: 2,
                     alignItems: "start",
-                    minWidth: 1360,
+                    minWidth: { xs: "100%", lg: 1360 },
                   }}
                 >
                   {columns.map((column) => {
@@ -312,7 +328,7 @@ export default function KanbanBoardPage() {
                           key={column.id}
                           elevation={0}
                           sx={{
-                            minHeight: 520,
+                            minHeight: { xs: "auto", lg: 520 },
                             borderRadius: 5,
                             p: 2,
                             bgcolor: "rgba(255,255,255,0.68)",
