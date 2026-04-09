@@ -16,12 +16,15 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import AddJobDialog from "../components/AddJobDialog";
-import {
-  type JobFormData,
-  type JobStatus,
-  type JobCard,
-  type ApiJob,
+import type {
+  JobFormData,
+  JobStatus,
+  JobCard,
+  ApiJob,
 } from "../types/job.types";
+import { DndContext, DragOverlay } from "@dnd-kit/core";
+import Draggable from "../components/Draggable";
+import Droppable from "../components/Droppable";
 
 const columns: Array<{
   id: JobStatus;
@@ -61,6 +64,7 @@ export default function KanbanBoardPage() {
   const [dialogStatus, setDialogStatus] = useState<JobStatus>("Saved");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   const openAddDialog = (status: JobStatus) => {
     setDialogStatus(status);
@@ -92,6 +96,9 @@ export default function KanbanBoardPage() {
             role: job.jobTitle,
             location: job.location || "",
             status: job.status,
+            applicationDate: job.applicationDate || new Date().toISOString(),
+            jobUrl: job.jobUrl || "",
+            notes: job.notes || "",
           })),
         );
       } catch (error) {
@@ -107,7 +114,7 @@ export default function KanbanBoardPage() {
   const handleAddCard = async (values: JobFormData) => {
     try {
       const token = localStorage.getItem("token");
-
+      console.log(token);
       if (!token) {
         throw new Error("Missing auth token");
       }
@@ -131,6 +138,9 @@ export default function KanbanBoardPage() {
           role: newJob.jobTitle,
           location: newJob.location || "",
           status: newJob.status,
+          applicationDate: newJob.applicationDate || new Date().toISOString(),
+          jobUrl: newJob.jobUrl || "",
+          notes: newJob.notes || "",
         },
         ...prev,
       ]);
@@ -140,6 +150,67 @@ export default function KanbanBoardPage() {
       setError("Failed to add card. Please sign in again if needed.");
     }
   };
+
+  const handleDragStart = (event: any) => {
+    setActiveJobId(String(event.active.id));
+  };
+
+  const handleDragEnd = async (event: any) => {
+    const { active, over } = event;
+    setActiveJobId(null);
+
+    if (!over) return;
+    if (!active.data.current?.supports?.includes(over.data.current?.type)) {
+      return;
+    }
+
+    const jobId = active.data.current?.jobId;
+    const nextStatus = over.data.current?.status;
+
+    if (!jobId || !nextStatus) return;
+
+    const draggedJob = jobs.find((job) => job.id === jobId);
+    if (!draggedJob || draggedJob.status === nextStatus) return;
+
+    setJobs((current) =>
+      current.map((job) =>
+        job.id === jobId ? { ...job, status: nextStatus } : job,
+      ),
+    );
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Missing auth token");
+      }
+
+      await axios.put(
+        `http://localhost:5001/api/job/${jobId}`,
+        {
+          companyName: draggedJob.company,
+          jobTitle: draggedJob.role,
+          status: nextStatus,
+          applicationDate: draggedJob.applicationDate,
+          location: draggedJob.location,
+          jobUrl: draggedJob.jobUrl,
+          notes: draggedJob.notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    } catch (error) {
+      console.log("Failed to drag job", error);
+      setError("Failed to drag jobs");
+    }
+  };
+  const handleDragCancel = () => {
+    setActiveJobId(null);
+  };
+
+  const activeJob = jobs.find((job) => job.id === activeJobId);
 
   return (
     <>
@@ -209,170 +280,223 @@ export default function KanbanBoardPage() {
               </Typography>
             </Paper>
           ) : (
-            <Box
-              sx={{
-                mt: 3,
-                overflowX: "auto",
-                pb: 1,
-              }}
+            <DndContext
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDragCancel={handleDragCancel}
             >
               <Box
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(5, minmax(260px, 1fr))",
-                  gap: 2,
-                  alignItems: "start",
-                  minWidth: 1360,
+                  mt: 3,
+                  overflowX: "auto",
+                  pb: 1,
                 }}
               >
-                {columns.map((column) => {
-                  const cards = jobs.filter((job) => job.status === column.id);
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(5, minmax(260px, 1fr))",
+                    gap: 2,
+                    alignItems: "start",
+                    minWidth: 1360,
+                  }}
+                >
+                  {columns.map((column) => {
+                    const cards = jobs.filter(
+                      (job) => job.status === column.id,
+                    );
 
-                  return (
-                    <Paper
-                      key={column.id}
-                      elevation={0}
-                      sx={{
-                        minHeight: 520,
-                        borderRadius: 5,
-                        p: 2,
-                        bgcolor: "rgba(255,255,255,0.68)",
-                        backdropFilter: "blur(10px)",
-                        border: "1px solid rgba(31, 78, 121, 0.08)",
-                      }}
-                    >
-                      <Stack
-                        direction="row"
-                        justifyContent="space-between"
-                        alignItems="flex-start"
-                        spacing={2}
-                      >
-                        <Typography
-                          variant="h6"
-                          sx={{ color: "#16324a", fontWeight: 700 }}
-                        >
-                          {column.title}
-                        </Typography>
-
-                        <Chip
-                          label={cards.length}
-                          size="small"
+                    return (
+                      <Droppable key={column.id} id={column.id}>
+                        <Paper
+                          key={column.id}
+                          elevation={0}
                           sx={{
-                            bgcolor: `${column.accent}18`,
-                            color: column.accent,
-                            fontWeight: 700,
+                            minHeight: 520,
+                            borderRadius: 5,
+                            p: 2,
+                            bgcolor: "rgba(255,255,255,0.68)",
+                            backdropFilter: "blur(10px)",
+                            border: "1px solid rgba(31, 78, 121, 0.08)",
                           }}
-                        />
-                      </Stack>
-
-                      <Divider sx={{ my: 2 }} />
-
-                      <Stack spacing={2}>
-                        {cards.length === 0 && (
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "rgba(23, 50, 77, 0.55)" }}
+                        >
+                          <Stack
+                            direction="row"
+                            justifyContent="space-between"
+                            alignItems="flex-start"
+                            spacing={2}
                           >
-                            No jobs
-                          </Typography>
-                        )}
-
-                        {cards.map((job) => (
-                          <Paper
-                            key={job.id}
-                            elevation={0}
-                            sx={{
-                              borderRadius: 4,
-                              p: 2,
-                              bgcolor: "#ffffff",
-                              border: "1px solid rgba(31, 78, 121, 0.08)",
-                              boxShadow: "0 12px 30px rgba(40, 68, 94, 0.06)",
-                            }}
-                          >
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              alignItems="center"
-                              spacing={2}
-                            >
-                              <Stack
-                                direction="row"
-                                spacing={1.5}
-                                alignItems="center"
-                              >
-                                <Avatar
-                                  sx={{
-                                    width: 42,
-                                    height: 42,
-                                    bgcolor: `${column.accent}22`,
-                                    color: column.accent,
-                                    fontWeight: 700,
-                                  }}
-                                >
-                                  {job.company?.[0] || "J"}
-                                </Avatar>
-
-                                <Box>
-                                  <Typography
-                                    variant="subtitle1"
-                                    sx={{ color: "#17324d", fontWeight: 700 }}
-                                  >
-                                    {job.role}
-                                  </Typography>
-                                  <Typography
-                                    variant="body2"
-                                    sx={{ color: "rgba(23, 50, 77, 0.68)" }}
-                                  >
-                                    {job.company}
-                                  </Typography>
-                                </Box>
-                              </Stack>
-
-                              <Chip
-                                label={column.title}
-                                size="small"
-                                sx={{
-                                  bgcolor: `${column.accent}16`,
-                                  color: column.accent,
-                                  fontWeight: 600,
-                                }}
-                              />
-                            </Stack>
-
                             <Typography
-                              variant="body2"
-                              sx={{ color: "#53708c", mt: 2, mb: 1.5 }}
+                              variant="h6"
+                              sx={{ color: "#16324a", fontWeight: 700 }}
                             >
-                              {job.location || "No location provided"}
+                              {column.title}
                             </Typography>
 
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              alignItems="center"
-                              sx={{ mt: 1.5 }}
-                            ></Stack>
-                          </Paper>
-                        ))}
+                            <Chip
+                              label={cards.length}
+                              size="small"
+                              sx={{
+                                bgcolor: `${column.accent}18`,
+                                color: column.accent,
+                                fontWeight: 700,
+                              }}
+                            />
+                          </Stack>
 
-                        <Button
-                          variant="text"
-                          onClick={() => openAddDialog(column.id)}
-                          sx={{
-                            alignSelf: "flex-start",
-                            color: "#2f73b7",
-                            textTransform: "none",
-                            fontWeight: 600,
-                          }}
-                        >
-                          + Add card
-                        </Button>
-                      </Stack>
-                    </Paper>
-                  );
-                })}
+                          <Divider sx={{ my: 2 }} />
+
+                          <Stack spacing={2}>
+                            {cards.length === 0 && (
+                              <Typography
+                                variant="body2"
+                                sx={{ color: "rgba(23, 50, 77, 0.55)" }}
+                              >
+                                No jobs
+                              </Typography>
+                            )}
+
+                            {cards.map((job) => (
+                              <Draggable key={job.id} job={job}>
+                                <Paper
+                                  elevation={0}
+                                  sx={{
+                                    borderRadius: 4,
+                                    p: 2,
+                                    bgcolor: "#ffffff",
+                                    border: "1px solid rgba(31, 78, 121, 0.08)",
+                                    boxShadow:
+                                      "0 12px 30px rgba(40, 68, 94, 0.06)",
+                                  }}
+                                >
+                                  <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                    spacing={2}
+                                  >
+                                    <Stack
+                                      direction="row"
+                                      spacing={1.5}
+                                      alignItems="center"
+                                    >
+                                      <Avatar
+                                        sx={{
+                                          width: 42,
+                                          height: 42,
+                                          bgcolor: `${column.accent}22`,
+                                          color: column.accent,
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        {job.company?.[0] || "J"}
+                                      </Avatar>
+
+                                      <Box>
+                                        <Typography
+                                          variant="subtitle1"
+                                          sx={{
+                                            color: "#17324d",
+                                            fontWeight: 700,
+                                          }}
+                                        >
+                                          {job.role}
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            color: "rgba(23, 50, 77, 0.68)",
+                                          }}
+                                        >
+                                          {job.company}
+                                        </Typography>
+                                      </Box>
+                                    </Stack>
+
+                                    <Chip
+                                      label={column.title}
+                                      size="small"
+                                      sx={{
+                                        bgcolor: `${column.accent}16`,
+                                        color: column.accent,
+                                        fontWeight: 600,
+                                      }}
+                                    />
+                                  </Stack>
+
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      color: "#53708c",
+                                      mt: 2,
+                                      mb: 1.5,
+                                    }}
+                                  >
+                                    {job.location || "No location provided"}
+                                  </Typography>
+
+                                  <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                    sx={{ mt: 1.5 }}
+                                  ></Stack>
+                                </Paper>
+                              </Draggable>
+                            ))}
+
+                            <Button
+                              variant="text"
+                              onClick={() => openAddDialog(column.id)}
+                              sx={{
+                                alignSelf: "flex-start",
+                                color: "#2f73b7",
+                                textTransform: "none",
+                                fontWeight: 600,
+                              }}
+                            >
+                              + Add card
+                            </Button>
+                          </Stack>
+                        </Paper>
+                      </Droppable>
+                    );
+                  })}
+                </Box>
               </Box>
-            </Box>
+              <DragOverlay>
+                {activeJob ? (
+                  <Paper
+                    elevation={6}
+                    sx={{
+                      borderRadius: 5,
+                      p: 2,
+                      bgcolor: "rgba(255,255,255,0.68)",
+                      border: "1px solid rgba(31, 78, 121, 0.08)",
+                    }}
+                  >
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ color: "#17324d", fontWeight: 700 }}
+                    >
+                      {activeJob.role}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "rgba(23, 50, 77, 0.68)" }}
+                    >
+                      {activeJob.company}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "#53708c", mt: 2 }}
+                    >
+                      {activeJob.location || "No location provided"}
+                    </Typography>
+                  </Paper>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           )}
         </Container>
       </Box>

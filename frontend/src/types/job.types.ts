@@ -4,6 +4,9 @@ export type JobCard = {
   role: string;
   location: string;
   status: JobStatus;
+  applicationDate: string;
+  jobUrl: string;
+  notes: string;
 };
 
 export type ApiJob = {

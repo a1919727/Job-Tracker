@@ -12,31 +12,8 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-
-export const JOB_STATUSES = [
-  "Saved",
-  "Applied",
-  "Interview",
-  "Rejected",
-  "Offer",
-] as const;
-
-export type JobStatus =
-  | "Saved"
-  | "Applied"
-  | "Interview"
-  | "Rejected"
-  | "Offer";
-
-export type JobFormData = {
-  companyName: string;
-  jobTitle: string;
-  status: JobStatus;
-  applicationDate: string;
-  location: string;
-  jobUrl: string;
-  notes: string;
-};
+import type { JobStatus, JobFormData } from "../types/job.types";
+import { JOB_STATUSES } from "../types/job.types";
 
 type AddJobDialogProps = {
   open: boolean;
