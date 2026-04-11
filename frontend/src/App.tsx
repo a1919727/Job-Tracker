@@ -17,7 +17,7 @@ function App() {
         </Route>
 
         <Route element={<AppLayout />}>
-          <Route path="/Dashboard" element={<KanbanBoardPage />} />
+          <Route path="/dashboard" element={<KanbanBoardPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
         </Route>
       </Routes>

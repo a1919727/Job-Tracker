@@ -8,10 +8,15 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Drawer } from "@mui/material";
+import SideBar from "./SideBar";
 
 export default function HeaderBar() {
   const navigate = useNavigate();
-  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+  const toggleDrawer = (newOpen: boolean) => () => {
+    setOpen(newOpen);
+  };
 
   const handleLogout = async () => {
     try {
@@ -23,10 +28,8 @@ export default function HeaderBar() {
         },
       );
       console.log("Log out successfully", response);
-      setError("Log out successfully");
       navigate("/login");
     } catch (error) {
-      setError("Failed to log out");
       console.log("Failed to log out", error);
     }
   };
@@ -50,9 +53,13 @@ export default function HeaderBar() {
             color="inherit"
             aria-label="menu"
             sx={{ mr: 2 }}
+            onClick={toggleDrawer(true)}
           >
             <MenuIcon />
           </IconButton>
+          <Drawer open={open} onClose={toggleDrawer(false)}>
+            <SideBar onClose={toggleDrawer(false)} />
+          </Drawer>
           <Typography
             variant="h6"
             component="div"
