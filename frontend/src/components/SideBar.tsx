@@ -38,7 +38,7 @@ const navItems = [
   },
   {
     label: "Logout",
-    path: "/logout",
+    path: "/",
     icon: <LogoutIcon />,
   },
 ] as const;
