@@ -21,6 +21,7 @@ import type { JobFormData, JobStatus, ApiJob } from "../types/job.types";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
 import Draggable from "../components/Draggable";
 import Droppable from "../components/Droppable";
+import { API_BASE_URL } from "../config/api";
 
 const columns: Array<{
   id: JobStatus;
@@ -77,7 +78,7 @@ export default function KanbanBoardPage() {
           throw new Error("Missing auth token");
         }
 
-        const response = await axios.get("http://localhost:5001/api/job/", {
+        const response = await axios.get(`${API_BASE_URL}/api/job/`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -104,16 +105,12 @@ export default function KanbanBoardPage() {
         throw new Error("Missing auth token");
       }
 
-      const response = await axios.post(
-        "http://localhost:5001/api/job/",
-        values,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      const response = await axios.post(`${API_BASE_URL}/api/job/`, values, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       const newJob = response.data.job;
       setJobs((current) => [newJob, ...current]);
@@ -157,7 +154,7 @@ export default function KanbanBoardPage() {
       }
 
       await axios.put(
-        `http://localhost:5001/api/job/${jobId}`,
+        `${API_BASE_URL}/api/job/${jobId}`,
         {
           companyName: draggedJob.companyName,
           jobTitle: draggedJob.jobTitle,

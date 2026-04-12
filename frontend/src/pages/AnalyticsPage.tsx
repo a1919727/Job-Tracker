@@ -16,6 +16,7 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import type { ApiJob, JobStatus } from "../types/job.types";
 import AnalyticsPieChart from "../components/AnalyticsPieChart";
+import { API_BASE_URL } from "../config/api";
 
 const statusAccent: Record<JobStatus, string> = {
   Saved: "#7d8ea3",
@@ -40,7 +41,7 @@ export default function AnalyticsPage() {
           throw new Error("Missing auth token");
         }
 
-        const response = await axios.get("http://localhost:5001/api/job/", {
+        const response = await axios.get(`${API_BASE_URL}/api/job/`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",

@@ -14,6 +14,7 @@ import {
   CssBaseline,
 } from "@mui/material";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const palette = {
   panel: "#f7fbff",
@@ -43,7 +44,7 @@ export default function ProfilePage() {
 
         if (!token) throw new Error("Missing auth token");
 
-        const response = await axios.get("http://localhost:5001/api/user", {
+        const response = await axios.get(`${API_BASE_URL}/api/user`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -85,16 +86,12 @@ export default function ProfilePage() {
         data.password = password.trim();
       }
 
-      const response = await axios.put(
-        "http://localhost:5001/api/user/",
-        data,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+      const response = await axios.put(`${API_BASE_URL}/api/user/`, data, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+      });
       setUsername(response.data.username || "");
       setEmail(response.data.email || "");
       setPassword(response.data.password);

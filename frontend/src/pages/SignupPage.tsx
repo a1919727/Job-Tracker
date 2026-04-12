@@ -18,6 +18,7 @@ import {
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config/api";
 
 export default function SignUpSide() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ export default function SignUpSide() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/auth/register",
+        `${API_BASE_URL}5001/api/auth/register`,
         {
           username,
           email,

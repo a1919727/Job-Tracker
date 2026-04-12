@@ -20,6 +20,7 @@ import {
   IconButton,
   InputAdornment,
 } from "@mui/material";
+import { API_BASE_URL } from "../config/api";
 
 export default function SignInSide() {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ export default function SignInSide() {
 
     try {
       const response = await axios.post(
-        "http://localhost:5001/api/auth/login",
+        `${API_BASE_URL}/api/auth/login`,
         {
           email,
           password,
