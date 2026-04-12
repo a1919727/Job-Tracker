@@ -60,7 +60,7 @@ export default function SignInSide() {
       );
       console.log("Log in successfully", response.data);
       localStorage.setItem("token", response.data.token);
-      navigate("/Dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.log("Failed to login", error);
       setError("Failed to login");
