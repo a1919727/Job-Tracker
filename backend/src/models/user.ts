@@ -4,6 +4,8 @@ interface IUser extends Document {
   username: string;
   email: string;
   password: string;
+  linkedln: string;
+  github: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +38,16 @@ const userSchema = new mongoose.Schema<IUser>(
       required: true,
       minlength: [8, "Password must be at least 8 characters long!"],
       select: false,
+    },
+    linkedln: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    github: {
+      type: String,
+      trim: true,
+      default: "",
     },
   },
   {

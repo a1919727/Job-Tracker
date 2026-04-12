@@ -5,6 +5,7 @@ import KanbanBoardPage from "./pages/KanbanBoardPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import AppLayout from "./components/AppLayout";
 import AuthLayout from "./components/AuthLayout";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/dashboard" element={<KanbanBoardPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
