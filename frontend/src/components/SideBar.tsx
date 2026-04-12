@@ -12,6 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Avatar, Divider } from "@mui/material";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 type SideBarPropos = {
   onClose?: () => void;
@@ -57,7 +58,7 @@ export default function SideBar({ onClose }: SideBarPropos) {
       const token = localStorage.getItem("token");
       if (!token) return "Missing token";
 
-      const response = await axios.get("http://localhost:5001/api/user", {
+      const response = await axios.get(`${API_BASE_URL}/api/user`, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",

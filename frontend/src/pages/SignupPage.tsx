@@ -47,7 +47,7 @@ export default function SignUpSide() {
 
     try {
       const response = await axios.post(
-        `${API_BASE_URL}5001/api/auth/register`,
+        `${API_BASE_URL}/api/auth/register`,
         {
           username,
           email,
