@@ -63,7 +63,7 @@ export default function SignInSide() {
       navigate("/dashboard");
     } catch (error) {
       console.log("Failed to login", error);
-      setError("Failed to login");
+      setError(error.response?.data?.message || "Failed to login");
     } finally {
       setIsLoading(false);
     }

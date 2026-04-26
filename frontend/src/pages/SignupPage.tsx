@@ -61,8 +61,8 @@ export default function SignUpSide() {
       console.log("Sign up successfully:", response.data);
       navigate("/login");
     } catch (error) {
+      setError(error.response?.data?.message || "Failed to signup");
       console.log("Failed to signup", error);
-      setError("Failed to signup");
     } finally {
       setIsLoading(false);
     }
