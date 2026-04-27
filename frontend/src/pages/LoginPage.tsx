@@ -62,8 +62,12 @@ export default function SignInSide() {
       localStorage.setItem("token", response.data.token);
       navigate("/dashboard");
     } catch (error) {
-      console.log("Failed to login", error);
-      setError(error.response?.data?.message || "Failed to login");
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Failed to login");
+        console.log(error.response);
+      } else {
+        console.error(error);
+      }
     } finally {
       setIsLoading(false);
     }

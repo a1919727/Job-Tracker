@@ -61,8 +61,12 @@ export default function SignUpSide() {
       console.log("Sign up successfully:", response.data);
       navigate("/login");
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to signup");
-      console.log("Failed to signup", error);
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Failed to signup");
+        console.log(error.response);
+      } else {
+        console.error(error);
+      }
     } finally {
       setIsLoading(false);
     }
