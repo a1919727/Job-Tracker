@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Visibility from "@mui/icons-material/Visibility";
@@ -29,6 +29,7 @@ export default function SignInSide() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const palette = {
     panel: "#f7fbff",
@@ -59,7 +60,13 @@ export default function SignInSide() {
         },
       );
       console.log("Log in successfully", response.data);
-      localStorage.setItem("token", response.data.token);
+
+      if (rememberMe) {
+        localStorage.setItem("token", response.data.token);
+      } else {
+        sessionStorage.setItem("token", response.data.token);
+      }
+
       navigate("/dashboard");
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -72,6 +79,20 @@ export default function SignInSide() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+
+    if (token) {
+      navigate("/dashboard");
+    }
+    const savedEmail = localStorage.getItem("email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, [navigate]);
 
   return (
     <Grid>
@@ -161,6 +182,7 @@ export default function SignInSide() {
                 id="email"
                 label="Email Address"
                 name="email"
+                value={email}
                 autoComplete="email"
                 autoFocus
                 onChange={(e) => setEmail(e.target.value)}
@@ -171,6 +193,7 @@ export default function SignInSide() {
                 fullWidth
                 name="password"
                 label="Password"
+                value={password}
                 type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="current-password"
@@ -211,6 +234,8 @@ export default function SignInSide() {
                           color: palette.primary,
                         },
                       }}
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                     />
                   }
                   label="Remember me"

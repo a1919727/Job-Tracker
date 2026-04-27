@@ -53,9 +53,18 @@ export default function SideBar({ onClose }: SideBarPropos) {
     onClose?.();
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    localStorage.removeItem("email");
+
+    navigate("/login");
+  };
+
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) return "Missing token";
 
       const response = await axios.get(`${API_BASE_URL}/api/user`, {
@@ -105,7 +114,13 @@ export default function SideBar({ onClose }: SideBarPropos) {
           <ListItem key={item.label} disablePadding>
             <ListItemButton
               selected={location.pathname === item.path}
-              onClick={() => handleNavigate(item.path)}
+              onClick={() => {
+                if (item.label === "Logout") {
+                  handleLogout();
+                } else {
+                  handleNavigate(item.path);
+                }
+              }}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />

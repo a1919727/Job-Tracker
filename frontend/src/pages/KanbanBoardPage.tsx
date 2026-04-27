@@ -73,7 +73,8 @@ export default function KanbanBoardPage() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
+        const token =
+          localStorage.getItem("token") || sessionStorage.getItem("token");
         if (!token) {
           throw new Error("Missing auth token");
         }
@@ -99,7 +100,8 @@ export default function KanbanBoardPage() {
 
   const handleAddCard = async (values: JobFormData) => {
     try {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       console.log(token);
       if (!token) {
         throw new Error("Missing auth token");
@@ -148,7 +150,8 @@ export default function KanbanBoardPage() {
       ),
     );
     try {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (!token) {
         throw new Error("Missing auth token");
       }
