@@ -100,8 +100,12 @@ export default function KanbanBoardPage() {
         const jobsFromApi: ApiJob[] = response.data.jobs;
         setJobs(jobsFromApi);
       } catch (error) {
-        console.log("Failed to fetch jobs", error);
-        setError("Failed to fetch jobs");
+        if (axios.isAxiosError(error)) {
+          setError(error.response?.data?.message || "Failed to fetch jobs");
+          console.log(error.response);
+        } else {
+          console.error(error);
+        }
       } finally {
         setLoading(false);
       }
@@ -126,8 +130,12 @@ export default function KanbanBoardPage() {
       const newJob = response.data.job;
       setJobs((current) => [newJob, ...current]);
     } catch (error) {
-      console.log("Failed to add card", error);
-      setError(error.message || "Failed to add card");
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Failed to add card");
+        console.log(error.response);
+      } else {
+        console.error(error);
+      }
     }
   };
 
@@ -156,8 +164,12 @@ export default function KanbanBoardPage() {
         current.map((job) => (job._id === updatedJob._id ? updatedJob : job)),
       );
     } catch (error) {
-      console.log("Failed to edit card", error);
-      setError(error.message || "Failed to edit card");
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Failed to edit card");
+        console.log(error.response);
+      } else {
+        console.error(error);
+      }
     }
   };
 
