@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import ChangePasswordDialog from "../components/ChangePasswordDialog";
 
 const palette = {
   panel: "#f7fbff",
@@ -26,21 +27,28 @@ const palette = {
   text: "#29506f",
 };
 
+const getToken = () =>
+  localStorage.getItem("token") || sessionStorage.getItem("token");
+
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [linkedln, setLinkedln] = useState("");
   const [github, setGithub] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordDialog, setPasswordDialog] = useState(false);
+  const [passwordDialogLoading, setPasswordDialogLoading] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
+        const token = getToken();
 
         if (!token) throw new Error("Missing auth token");
 
@@ -55,9 +63,6 @@ export default function ProfilePage() {
         setEmail(response.data.email || "");
         setLinkedln(response.data.linkedln || "");
         setGithub(response.data.github || "");
-        if (response.data.password) {
-          setPassword("");
-        }
       } catch (error) {
         console.log("Failed to fetch profile", error);
         setError("Failed to load profile.");
@@ -70,7 +75,7 @@ export default function ProfilePage() {
 
   const handleSubmit = async () => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getToken();
       if (!token) {
         throw new Error("Missing auth token");
       }
@@ -82,10 +87,6 @@ export default function ProfilePage() {
         github: github.trim(),
       };
 
-      if (password.trim()) {
-        data.password = password.trim();
-      }
-
       const response = await axios.put(`${API_BASE_URL}/api/user/`, data, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -94,7 +95,6 @@ export default function ProfilePage() {
       });
       setUsername(response.data.username || "");
       setEmail(response.data.email || "");
-      setPassword(response.data.password);
       setLinkedln(response.data.linkedln || "");
       setGithub(response.data.github || "");
       setMessage("Update profile successfully");
@@ -102,6 +102,66 @@ export default function ProfilePage() {
     } catch (error) {
       console.log("Failed to update profile", error);
       setError("Failed to update profile");
+    }
+  };
+
+  const cleanPasswordForm = () => {
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  const handleClose = async () => {
+    setPasswordDialog(false);
+    cleanPasswordForm();
+  };
+
+  const handlePasswordSubmit = async () => {
+    try {
+      const token = getToken();
+
+      if (!token) {
+        throw new Error("Missing auth token");
+      }
+
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        setError("Missing current password, new password, or confirm password");
+        return;
+      }
+
+      if (newPassword !== confirmPassword) {
+        setError("New password and confirm passowrd do not match");
+        return;
+      }
+
+      setPasswordDialogLoading(true);
+
+      const response = await axios.put(
+        `${API_BASE_URL}/api/user/change-password`,
+        {
+          currentPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      setMessage(response.data.message || "Password updated successfully");
+      setError("");
+      setPasswordDialog(false);
+      cleanPasswordForm();
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        setError(error.response?.data?.message || "Failed to reset password");
+        console.log(error.response);
+      } else {
+        console.error(error);
+      }
+    } finally {
+      setPasswordDialogLoading(false);
     }
   };
 
@@ -226,35 +286,6 @@ export default function ProfilePage() {
                       width: 140,
                     }}
                   >
-                    Password
-                  </Typography>
-                  <TextField
-                    type="password"
-                    label="New password"
-                    placeholder="Change your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    fullWidth
-                  />
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 3,
-                    width: "100%",
-                    maxWidth: 640,
-                  }}
-                >
-                  <Typography
-                    variant="h6"
-                    sx={{
-                      color: "rgba(22, 50, 74, 0.58)",
-                      flexShrink: 0,
-                      width: 140,
-                    }}
-                  >
                     Linkedln
                   </Typography>
                   <TextField
@@ -292,32 +323,77 @@ export default function ProfilePage() {
                   />
                 </Box>
               </Stack>
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading}
-                onClick={handleSubmit}
+              <Box
                 sx={{
-                  mt: 3,
-                  mb: 2,
-                  bgcolor: palette.primary,
-                  boxShadow: "none",
-                  "&:hover": {
-                    bgcolor: palette.primaryHover,
-                    boxShadow: "none",
-                  },
-                  width: "30%",
-                  height: 50,
+                  display: "flex",
+                  justifyContent: "space-around",
+                  alignItems: "center",
+                  width: "100%",
                 }}
               >
-                {loading ? "Updating..." : "Update profile"}
-              </Button>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  onClick={() => setPasswordDialog(true)}
+                  sx={{
+                    mt: 3,
+                    mb: 2,
+                    bgcolor: palette.primary,
+                    boxShadow: "none",
+                    "&:hover": {
+                      bgcolor: palette.primaryHover,
+                      boxShadow: "none",
+                    },
+                    width: "30%",
+                    height: 50,
+                    fontWeight: 600,
+                    textTransform: "none",
+                  }}
+                >
+                  {loading ? "Changing" : "Change Password"}
+                </Button>
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  disabled={loading}
+                  onClick={handleSubmit}
+                  sx={{
+                    mt: 3,
+                    mb: 2,
+                    bgcolor: palette.primary,
+                    boxShadow: "none",
+                    "&:hover": {
+                      bgcolor: palette.primaryHover,
+                      boxShadow: "none",
+                    },
+                    width: "30%",
+                    height: 50,
+                    textTransform: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  {loading ? "Updating..." : "Update profile"}
+                </Button>
+              </Box>
             </Stack>
           </Paper>
         </Container>
       </Box>
-
+      <ChangePasswordDialog
+        open={passwordDialog}
+        loading={passwordDialogLoading}
+        currentPassword={currentPassword}
+        newPassword={newPassword}
+        confirmPassword={confirmPassword}
+        onClose={handleClose}
+        onSubmit={handlePasswordSubmit}
+        onCurrentPassword={setCurrentPassword}
+        onNewPassword={setNewPassword}
+        onConfirmPassword={setConfirmPassword}
+      />
       <Snackbar
         open={!!error}
         autoHideDuration={6000}
@@ -337,7 +413,7 @@ export default function ProfilePage() {
       >
         <Alert severity="success" onClose={() => setMessage("")}>
           <AlertTitle>Success</AlertTitle>
-          {error}
+          {message}
         </Alert>
       </Snackbar>
     </>

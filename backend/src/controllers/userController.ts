@@ -64,4 +64,46 @@ const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-export { getUser, updateUser };
+const changePassword = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const currentPassword = String(req.body.currentPassword || "").trim();
+    const newPassword = String(req.body.newPassword || "").trim();
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        message: "Missing current password or new password",
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        message: "New password should be at least 8 characters",
+      });
+    }
+
+    const user = await User.findById(userId).select("+password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    await user.save();
+    return res.status(200).json({ message: "Update password successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Failed to change password" });
+  }
+};
+export { getUser, updateUser, changePassword };
