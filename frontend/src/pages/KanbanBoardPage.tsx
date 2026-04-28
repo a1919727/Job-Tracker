@@ -23,6 +23,7 @@ import Droppable from "../components/Droppable";
 import { API_BASE_URL } from "../config/api";
 import { getToken } from "../utils/auth";
 import JobCardDetails from "../components/JobCardDetails";
+import SearchBar from "../components/Searchbar";
 
 const columns: Array<{
   id: JobStatus;
@@ -66,6 +67,7 @@ export default function KanbanBoardPage() {
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [viewJobDetails, setViewJobDetails] = useState<ApiJob | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   const openAddDialog = (status: JobStatus) => {
     setJobToEdit(null);
@@ -249,9 +251,13 @@ export default function KanbanBoardPage() {
   const handleDragCancel = () => {
     setActiveJobId(null);
   };
-
   const activeJob = jobs.find((job) => job._id === activeJobId);
 
+  const formatSearch = searchKeyword.trim().toLowerCase();
+  const filteredJobs = jobs.filter((job) => {
+    const result = `${job.jobTitle} ${job.companyName} ${job.location ?? ""}`;
+    return result.toLowerCase().includes(formatSearch);
+  });
   return (
     <>
       <CssBaseline />
@@ -301,6 +307,10 @@ export default function KanbanBoardPage() {
                   Organise your applications and track each stage.
                 </Typography>
               </Box>
+              <SearchBar
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+              />
             </Stack>
           </Paper>
 
@@ -345,7 +355,7 @@ export default function KanbanBoardPage() {
                   }}
                 >
                   {columns.map((column) => {
-                    const cards = jobs.filter(
+                    const cards = filteredJobs.filter(
                       (job) => job.status === column.id,
                     );
 
