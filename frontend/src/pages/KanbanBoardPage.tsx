@@ -15,7 +15,6 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import AddJobDialog from "../components/AddJobDialog";
 import type { JobFormData, JobStatus, ApiJob } from "../types/job.types";
 import { DndContext, DragOverlay } from "@dnd-kit/core";
@@ -57,7 +56,6 @@ const columns: Array<{
 ];
 
 export default function KanbanBoardPage() {
-  const navigate = useNavigate();
   const [jobs, setJobs] = useState<ApiJob[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<JobStatus>("Saved");
@@ -183,10 +181,6 @@ export default function KanbanBoardPage() {
     setActiveJobId(null);
   };
 
-  const handleViewAnalytics = () => {
-    navigate("/analytics");
-  };
-
   const activeJob = jobs.find((job) => job._id === activeJobId);
 
   return (
@@ -238,13 +232,6 @@ export default function KanbanBoardPage() {
                   Organise your applications and track each stage.
                 </Typography>
               </Box>
-              <Button
-                variant="outlined"
-                sx={{ fontWeight: "bold" }}
-                onClick={handleViewAnalytics}
-              >
-                View analytics
-              </Button>
             </Stack>
           </Paper>
 

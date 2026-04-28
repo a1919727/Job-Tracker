@@ -3,7 +3,6 @@ import {
   Alert,
   AlertTitle,
   Box,
-  Button,
   Chip,
   Container,
   CssBaseline,
@@ -13,7 +12,6 @@ import {
   Typography,
 } from "@mui/material";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import type { ApiJob, JobStatus } from "../types/job.types";
 import AnalyticsPieChart from "../components/AnalyticsPieChart";
 import { API_BASE_URL } from "../config/api";
@@ -28,7 +26,6 @@ const statusAccent: Record<JobStatus, string> = {
 };
 
 export default function AnalyticsPage() {
-  const navigate = useNavigate();
   const [allJobs, setAllJobs] = useState<ApiJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -68,10 +65,6 @@ export default function AnalyticsPage() {
       return dateB - dateA;
     })
     .slice(0, 5);
-
-  const handleBackToBoard = () => {
-    navigate("/Dashboard");
-  };
 
   return (
     <>
@@ -122,14 +115,6 @@ export default function AnalyticsPage() {
                   Recent activities across your applications.
                 </Typography>
               </Box>
-
-              <Button
-                variant="outlined"
-                sx={{ fontWeight: "bold" }}
-                onClick={handleBackToBoard}
-              >
-                Back to board
-              </Button>
             </Stack>
           </Paper>
 
