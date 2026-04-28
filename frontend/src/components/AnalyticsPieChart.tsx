@@ -26,7 +26,7 @@ const statuses: JobStatus[] = [
 export default function AnalyticsPieChart({ jobs }: AnalyticsPieChartProps) {
   const radius = 55;
 
-  const data = statuses.map((status) => {
+  const statusCounts = statuses.map((status) => {
     const value = jobs.filter((job) => job.status === status).length;
 
     return {
@@ -36,6 +36,8 @@ export default function AnalyticsPieChart({ jobs }: AnalyticsPieChartProps) {
       color: statusColors[status],
     };
   });
+
+  const chartData = statusCounts.filter((status) => status.value > 0);
 
   return (
     <Box
@@ -66,16 +68,31 @@ export default function AnalyticsPieChart({ jobs }: AnalyticsPieChartProps) {
         </Typography>
       </Box>
 
-      <PieChart
-        height={400}
-        series={[
-          {
-            data,
-            innerRadius: radius,
-            arcLabel: (params) => params.label ?? "",
-          },
-        ]}
-      />
+      {chartData.length === 0 ? (
+        <Box
+          sx={{
+            height: 320,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography variant="body1" sx={{ color: "#53708c" }}>
+            Please add jobs on kanban board
+          </Typography>
+        </Box>
+      ) : (
+        <PieChart
+          height={400}
+          series={[
+            {
+              data: chartData,
+              innerRadius: radius,
+              arcLabel: (params) => (params.value > 0 ? params.label : ""),
+            },
+          ]}
+        />
+      )}
     </Box>
   );
 }
