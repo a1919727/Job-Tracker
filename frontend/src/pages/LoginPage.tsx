@@ -21,6 +21,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { API_BASE_URL } from "../config/api";
+import { getToken } from "../utils/auth";
 
 export default function SignInSide() {
   const navigate = useNavigate();
@@ -81,8 +82,7 @@ export default function SignInSide() {
   };
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("token") || sessionStorage.getItem("token");
+    const token = getToken();
 
     if (token) {
       navigate("/dashboard");

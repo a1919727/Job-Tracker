@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import type { ApiJob, JobStatus } from "../types/job.types";
 import AnalyticsPieChart from "../components/AnalyticsPieChart";
 import { API_BASE_URL } from "../config/api";
+import { getToken } from "../utils/auth";
 
 const statusAccent: Record<JobStatus, string> = {
   Saved: "#7d8ea3",
@@ -36,7 +37,7 @@ export default function AnalyticsPage() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem("token");
+        const token = getToken();
         if (!token) {
           throw new Error("Missing auth token");
         }

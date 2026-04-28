@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
+import { getToken } from "../utils/auth";
 
 const palette = {
   panel: "#f7fbff",
@@ -26,9 +27,6 @@ const palette = {
   link: "#2f73b7",
   text: "#29506f",
 };
-
-const getToken = () =>
-  localStorage.getItem("token") || sessionStorage.getItem("token");
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);

@@ -22,6 +22,7 @@ import { DndContext, DragOverlay } from "@dnd-kit/core";
 import Draggable from "../components/Draggable";
 import Droppable from "../components/Droppable";
 import { API_BASE_URL } from "../config/api";
+import { getToken } from "../utils/auth";
 
 const columns: Array<{
   id: JobStatus;
@@ -73,8 +74,7 @@ export default function KanbanBoardPage() {
     const fetchJobs = async () => {
       try {
         setLoading(true);
-        const token =
-          localStorage.getItem("token") || sessionStorage.getItem("token");
+        const token = getToken();
         if (!token) {
           throw new Error("Missing auth token");
         }
