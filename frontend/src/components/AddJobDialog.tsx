@@ -12,21 +12,25 @@ import {
   Stack,
   TextField,
 } from "@mui/material";
-import type { JobStatus, JobFormData } from "../types/job.types";
+import type { ApiJob, JobStatus, JobFormData } from "../types/job.types";
 import { JOB_STATUSES } from "../types/job.types";
 
 type AddJobDialogProps = {
   open: boolean;
   initialStatus: JobStatus;
+  jobToEdit?: ApiJob | null;
   onClose: () => void;
   onSubmit: (values: JobFormData) => Promise<void>;
 };
 
 const getToday = () => new Date().toISOString().slice(0, 10);
+const formatDateInput = (value?: string) =>
+  value ? new Date(value).toISOString().slice(0, 10) : getToday();
 
 export default function AddJobDialog({
   open,
   initialStatus,
+  jobToEdit = null,
   onClose,
   onSubmit,
 }: AddJobDialogProps) {
@@ -39,19 +43,30 @@ export default function AddJobDialog({
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const isEditMode = Boolean(jobToEdit);
 
   useEffect(() => {
     if (!open) return;
 
-    setCompanyName("");
-    setJobTitle("");
-    setStatus(initialStatus);
-    setApplicationDate(getToday());
-    setLocation("");
-    setJobUrl("");
-    setNotes("");
+    if (jobToEdit) {
+      setCompanyName(jobToEdit.companyName);
+      setJobTitle(jobToEdit.jobTitle);
+      setStatus(jobToEdit.status);
+      setApplicationDate(formatDateInput(jobToEdit.applicationDate));
+      setLocation(jobToEdit.location ?? "");
+      setJobUrl(jobToEdit.jobUrl ?? "");
+      setNotes(jobToEdit.notes ?? "");
+    } else {
+      setCompanyName("");
+      setJobTitle("");
+      setStatus(initialStatus);
+      setApplicationDate(getToday());
+      setLocation("");
+      setJobUrl("");
+      setNotes("");
+    }
     setError("");
-  }, [open, initialStatus]);
+  }, [open, initialStatus, jobToEdit]);
 
   const handleClose = () => {
     if (isSubmitting) return;
@@ -82,8 +97,8 @@ export default function AddJobDialog({
 
       onClose();
     } catch (error) {
-      console.log("Failed to create job", error);
-      setError("Failed to create job.");
+      console.log("Failed to save job", error);
+      setError(isEditMode ? "Failed to update job." : "Failed to create job.");
     } finally {
       setIsSubmitting(false);
     }
@@ -104,7 +119,7 @@ export default function AddJobDialog({
     >
       <form onSubmit={handleSubmit}>
         <DialogTitle sx={{ fontWeight: 700, color: "#16324a" }}>
-          Add job card
+          {isEditMode ? "Edit job card" : "Add job card"}
         </DialogTitle>
 
         <DialogContent>
@@ -184,11 +199,26 @@ export default function AddJobDialog({
         </Snackbar>
 
         <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose} disabled={isSubmitting}>
+          <Button
+            onClick={handleClose}
+            disabled={isSubmitting}
+            sx={{ textTransform: "none" }}
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? "Adding..." : "Add Card"}
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isSubmitting}
+            sx={{ textTransform: "none" }}
+          >
+            {isSubmitting
+              ? isEditMode
+                ? "Saving..."
+                : "Adding..."
+              : isEditMode
+                ? "Save Changes"
+                : "Add Card"}
           </Button>
         </DialogActions>
       </form>

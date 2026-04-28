@@ -59,13 +59,26 @@ export default function KanbanBoardPage() {
   const [jobs, setJobs] = useState<ApiJob[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<JobStatus>("Saved");
+  const [jobToEdit, setJobToEdit] = useState<ApiJob | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
 
   const openAddDialog = (status: JobStatus) => {
+    setJobToEdit(null);
     setDialogStatus(status);
     setDialogOpen(true);
+  };
+
+  const openEditDialog = (job: ApiJob) => {
+    setJobToEdit(job);
+    setDialogStatus(job.status);
+    setDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setJobToEdit(null);
   };
 
   useEffect(() => {
@@ -98,9 +111,7 @@ export default function KanbanBoardPage() {
 
   const handleAddCard = async (values: JobFormData) => {
     try {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
-      console.log(token);
+      const token = getToken();
       if (!token) {
         throw new Error("Missing auth token");
       }
@@ -114,10 +125,39 @@ export default function KanbanBoardPage() {
 
       const newJob = response.data.job;
       setJobs((current) => [newJob, ...current]);
-      setDialogOpen(false);
     } catch (error) {
       console.log("Failed to add card", error);
-      setError("Failed to add card. Please sign in again if needed.");
+      setError(error.message || "Failed to add card");
+    }
+  };
+
+  const handleEditCard = async (values: JobFormData) => {
+    if (!jobToEdit) return;
+
+    try {
+      const token = getToken();
+      if (!token) {
+        throw new Error("Missing auth token");
+      }
+
+      const response = await axios.put(
+        `${API_BASE_URL}/api/job/${jobToEdit._id}`,
+        values,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const updatedJob = response.data.job;
+      setJobs((current) =>
+        current.map((job) => (job._id === updatedJob._id ? updatedJob : job)),
+      );
+    } catch (error) {
+      console.log("Failed to edit card", error);
+      setError(error.message || "Failed to edit card");
     }
   };
 
@@ -148,8 +188,7 @@ export default function KanbanBoardPage() {
       ),
     );
     try {
-      const token =
-        localStorage.getItem("token") || sessionStorage.getItem("token");
+      const token = getToken();
       if (!token) {
         throw new Error("Missing auth token");
       }
@@ -173,6 +212,11 @@ export default function KanbanBoardPage() {
         },
       );
     } catch (error) {
+      setJobs((current) =>
+        current.map((job) =>
+          job._id === jobId ? { ...job, status: draggedJob.status } : job,
+        ),
+      );
       console.log("Failed to drag job", error);
       setError("Failed to drag jobs");
     }
@@ -341,18 +385,19 @@ export default function KanbanBoardPage() {
                                     border: "1px solid rgba(31, 78, 121, 0.08)",
                                     boxShadow:
                                       "0 12px 30px rgba(40, 68, 94, 0.06)",
+                                    position: "relative",
                                   }}
                                 >
                                   <Stack
                                     direction="row"
                                     justifyContent="space-between"
-                                    alignItems="center"
+                                    alignItems="flex-start"
                                     spacing={2}
                                   >
                                     <Stack
                                       direction="row"
                                       spacing={1.5}
-                                      alignItems="center"
+                                      alignItems="flex-start"
                                     >
                                       <Avatar
                                         sx={{
@@ -384,6 +429,18 @@ export default function KanbanBoardPage() {
                                         >
                                           {job.companyName}
                                         </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            color: "#53708c",
+                                            mt: 2,
+                                            mb: 1.5,
+                                            textAlign: "left",
+                                            alignSelf: "flex-start",
+                                          }}
+                                        >
+                                          {job.location}
+                                        </Typography>
                                       </Box>
                                     </Stack>
 
@@ -398,23 +455,28 @@ export default function KanbanBoardPage() {
                                     />
                                   </Stack>
 
-                                  <Typography
-                                    variant="body2"
-                                    sx={{
-                                      color: "#53708c",
-                                      mt: 2,
-                                      mb: 1.5,
-                                    }}
-                                  >
-                                    {job.location || "No location provided"}
-                                  </Typography>
-
                                   <Stack
                                     direction="row"
-                                    justifyContent="space-between"
-                                    alignItems="center"
+                                    justifyContent="flex-end"
+                                    alignItems="right"
                                     sx={{ mt: 1.5 }}
-                                  ></Stack>
+                                  >
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      onClick={() => openEditDialog(job)}
+                                      onPointerDown={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                      sx={{
+                                        textTransform: "none",
+                                        color: "#2f73b7",
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      Edit
+                                    </Button>
+                                  </Stack>
                                 </Paper>
                               </Draggable>
                             ))}
@@ -423,7 +485,7 @@ export default function KanbanBoardPage() {
                               variant="text"
                               onClick={() => openAddDialog(column.id)}
                               sx={{
-                                alignSelf: "flex-start",
+                                alignSelf: "flex-end",
                                 color: "#2f73b7",
                                 textTransform: "none",
                                 fontWeight: 600,
@@ -490,8 +552,9 @@ export default function KanbanBoardPage() {
       <AddJobDialog
         open={dialogOpen}
         initialStatus={dialogStatus}
-        onClose={() => setDialogOpen(false)}
-        onSubmit={handleAddCard}
+        jobToEdit={jobToEdit}
+        onClose={closeDialog}
+        onSubmit={jobToEdit ? handleEditCard : handleAddCard}
       />
     </>
   );
