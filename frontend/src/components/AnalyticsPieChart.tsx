@@ -88,7 +88,8 @@ export default function AnalyticsPieChart({ jobs }: AnalyticsPieChartProps) {
             {
               data: chartData,
               innerRadius: radius,
-              arcLabel: (params) => (params.value > 0 ? params.label : ""),
+              arcLabel: (params) =>
+                params.value > 0 ? (params.label ?? "") : "",
             },
           ]}
         />
