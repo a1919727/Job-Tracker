@@ -600,12 +600,14 @@ export default function KanbanBoardPage() {
       <JobCardDetails
         open={detailsOpen}
         onClose={closeJobDetails}
-        companyName={viewJobDetails?.companyName}
-        jobTitle={viewJobDetails?.jobTitle}
-        location={viewJobDetails?.location}
-        applicationDate={viewJobDetails?.applicationDate}
-        jobUrl={viewJobDetails?.jobUrl}
-        notes={viewJobDetails?.notes}
+        companyName={viewJobDetails?.companyName || "You can add company name"}
+        jobTitle={viewJobDetails?.jobTitle || "You can add job title"}
+        location={viewJobDetails?.location || "You can add location"}
+        applicationDate={
+          viewJobDetails?.applicationDate || "You can add application date "
+        }
+        jobUrl={viewJobDetails?.jobUrl || "You can add url"}
+        notes={viewJobDetails?.notes || "You can add notes"}
       />
     </>
   );
