@@ -206,12 +206,7 @@ export default function AddJobDialog({
           >
             Cancel
           </Button>
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={isSubmitting}
-            sx={{ textTransform: "none" }}
-          >
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
             {isSubmitting
               ? isEditMode
                 ? "Saving..."

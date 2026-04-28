@@ -22,6 +22,7 @@ import Draggable from "../components/Draggable";
 import Droppable from "../components/Droppable";
 import { API_BASE_URL } from "../config/api";
 import { getToken } from "../utils/auth";
+import JobCardDetails from "../components/JobCardDetails";
 
 const columns: Array<{
   id: JobStatus;
@@ -63,6 +64,8 @@ export default function KanbanBoardPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [viewJobDetails, setViewJobDetails] = useState<ApiJob | null>(null);
 
   const openAddDialog = (status: JobStatus) => {
     setJobToEdit(null);
@@ -79,6 +82,16 @@ export default function KanbanBoardPage() {
   const closeDialog = () => {
     setDialogOpen(false);
     setJobToEdit(null);
+  };
+
+  const openJobDetails = (job: ApiJob) => {
+    setViewJobDetails(job);
+    setDetailsOpen(true);
+  };
+
+  const closeJobDetails = () => {
+    setDetailsOpen(false);
+    setViewJobDetails(null);
   };
 
   useEffect(() => {
@@ -476,6 +489,21 @@ export default function KanbanBoardPage() {
                                     <Button
                                       size="small"
                                       variant="text"
+                                      onClick={() => openJobDetails(job)}
+                                      onPointerDown={(e) => {
+                                        e.stopPropagation();
+                                      }}
+                                      sx={{
+                                        textTransform: "none",
+                                        color: "#2f73b7",
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      Details
+                                    </Button>
+                                    <Button
+                                      size="small"
+                                      variant="text"
                                       onClick={() => openEditDialog(job)}
                                       onPointerDown={(e) => {
                                         e.stopPropagation();
@@ -567,6 +595,17 @@ export default function KanbanBoardPage() {
         jobToEdit={jobToEdit}
         onClose={closeDialog}
         onSubmit={jobToEdit ? handleEditCard : handleAddCard}
+      />
+
+      <JobCardDetails
+        open={detailsOpen}
+        onClose={closeJobDetails}
+        companyName={viewJobDetails?.companyName}
+        jobTitle={viewJobDetails?.jobTitle}
+        location={viewJobDetails?.location}
+        applicationDate={viewJobDetails?.applicationDate}
+        jobUrl={viewJobDetails?.jobUrl}
+        notes={viewJobDetails?.notes}
       />
     </>
   );
